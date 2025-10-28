@@ -5,17 +5,17 @@ if [ -f "./.env" ]; then
     source "./.env"
 fi
 
-if [[ -z "$WORKDIR" ]]; then
+if [ -z "$WORKDIR" ]; then
     echo "No WORKIR found in environment. Operation cancelled."
     exit 1
 fi
 
-if [[ -z "$SMTP_USER" ]]; then
+if [ -z "$SMTP_USER" ]; then
     echo "No SMTP_USER found in environment. Operation cancelled."
     exit 1
 fi
 
-if [[ -z "$SMTP_PASS" ]]; then
+if [ -z "$SMTP_PASS" ]; then
     echo "No SMTP_PASS found in environment. Operation cancelled."
     exit 1
 fi
@@ -35,7 +35,7 @@ if [ -z "$previous_head" ]; then
     exit 0
 fi
 
-if [[ "$current_head" == "$previous_head" ]]; then
+if [ "$current_head" = "$previous_head" ]; then
     echo "Nothing has changed!"
     exit 0
 fi
