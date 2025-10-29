@@ -30,12 +30,12 @@ if [ ! -f "./previoushead.txt" ]; then
     touch "./previoushead.txt"
 fi
 
-previous_head=$(< "previoushead.txt")
+previous_head=$(< "./previoushead.txt")
 current_head=$(git ls-remote https://github.com/supabase/supabase.git refs/heads/master | cut -f1)
 
 if [ -z "$previous_head" ]; then
     echo "Saving current HEAD for the first time..."
-    printf %s "$current_head" > "previoushead.txt"
+    printf %s "$current_head" > "./previoushead.txt"
     echo "Success!"
     exit 0
 fi
@@ -69,6 +69,6 @@ fi
 
 echo "Saving new HEAD \"$current_head\"..."
 cd ..
-printf %s "$current_head" > "previoushead.txt"
+printf %s "$current_head" > "./previoushead.txt"
 echo "Success!"
 exit 0
