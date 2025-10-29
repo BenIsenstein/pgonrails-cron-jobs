@@ -20,7 +20,10 @@ if [ -z "$SMTP_PASS" ]; then
     exit 1
 fi
 
-mkdir -p "$WORKDIR"
+if [ ! -d "$WORKDIR"]; then
+    mkdir -p "$WORKDIR"
+fi
+
 cd "$WORKDIR"
 
 touch "previoushead.txt"

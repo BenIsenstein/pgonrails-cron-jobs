@@ -1,7 +1,7 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
-    "watchPatterns": ["update-images/**/*"]
+    "watchPatterns": ["/update-images/**/*"]
   },
   "deploy": {
     "cronSchedule": "0 * * * *"
