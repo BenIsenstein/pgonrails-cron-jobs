@@ -20,13 +20,15 @@ if [ -z "$SMTP_PASS" ]; then
     exit 1
 fi
 
-if [ ! -d "$WORKDIR"]; then
+if [ ! -d "$WORKDIR" ]; then
     mkdir -p "$WORKDIR"
 fi
 
 cd "$WORKDIR"
 
-touch "previoushead.txt"
+if [ ! -f "./previoushead.txt" ]; then
+    touch "./previoushead.txt"
+fi
 
 previous_head=$(< "previoushead.txt")
 current_head=$(git ls-remote https://github.com/supabase/supabase.git refs/heads/master | cut -f1)
