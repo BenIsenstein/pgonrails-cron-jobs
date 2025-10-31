@@ -24,18 +24,16 @@ if [ ! -d "$WORKDIR" ]; then
     mkdir -p "$WORKDIR"
 fi
 
-cd "$WORKDIR"
-
-if [ ! -f "./previoushead.txt" ]; then
-    touch "./previoushead.txt"
+if [ ! -f "$WORKDIR/previoushead.txt" ]; then
+    touch "$WORKDIR/previoushead.txt"
 fi
 
-previous_head=$(< "./previoushead.txt")
+previous_head=$(< "$WORKDIR/previoushead.txt")
 current_head=$(git ls-remote https://github.com/supabase/supabase.git refs/heads/master | cut -f1)
 
 if [ -z "$previous_head" ]; then
     echo "Saving current HEAD for the first time..."
-    printf %s "$current_head" > "./previoushead.txt"
+    printf %s "$current_head" > "$WORKDIR/previoushead.txt"
     echo "Success!"
     exit 0
 fi
@@ -47,12 +45,12 @@ fi
 
 echo "Supabase remote HEAD has updated! Checking for relevant changes locally..." 
 
-if [ -d "supabase" ]; then
-    cd supabase
+if [ -d "$WORKDIR/supabase" ]; then
+    cd "$WORKDIR/supabase"
     git pull
 else
-    git clone https://github.com/supabase/supabase
-    cd supabase
+    git clone https://github.com/supabase/supabase "$WORKDIR/supabase"
+    cd "$WORKDIR/supabase"
 fi
 
 if [ -z "$(git diff --name-only "$previous_head" HEAD -- docker)" ]; then
@@ -68,7 +66,6 @@ else
 fi
 
 echo "Saving new HEAD \"$current_head\"..."
-cd ..
-printf %s "$current_head" > "./previoushead.txt"
+printf %s "$current_head" > "$WORKDIR/previoushead.txt"
 echo "Success!"
 exit 0
