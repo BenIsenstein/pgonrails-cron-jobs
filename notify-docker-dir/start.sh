@@ -1,21 +1,21 @@
-#!/bin/bash
+#!/bin/sh
 set -eu
 
 if [ -f "./.env" ]; then
-    source "./.env"
+    . "./.env"
 fi
 
-if [ -z "$WORKDIR" ]; then
-    echo "No WORKIR found in environment. Operation cancelled."
+if [ -z "${WORKDIR:-}" ]; then
+    echo "No WORKDIR found in environment. Operation cancelled."
     exit 1
 fi
 
-if [ -z "$SMTP_USER" ]; then
+if [ -z "${SMTP_USER:-}" ]; then
     echo "No SMTP_USER found in environment. Operation cancelled."
     exit 1
 fi
 
-if [ -z "$SMTP_PASS" ]; then
+if [ -z "${SMTP_PASS:-}" ]; then
     echo "No SMTP_PASS found in environment. Operation cancelled."
     exit 1
 fi
@@ -28,7 +28,7 @@ if [ ! -f "$WORKDIR/previoushead.txt" ]; then
     touch "$WORKDIR/previoushead.txt"
 fi
 
-previous_head=$(< "$WORKDIR/previoushead.txt")
+previous_head=$(cat "$WORKDIR/previoushead.txt")
 current_head=$(git ls-remote https://github.com/supabase/supabase.git refs/heads/master | cut -f1)
 
 if [ -z "$previous_head" ]; then
@@ -57,12 +57,12 @@ if [ -z "$(git diff --name-only "$previous_head" HEAD -- docker)" ]; then
     echo "Nothing has changed in /docker!"
 else
     echo "New changes in /docker! Notifying via email..."
-
+    printf "From: \"PG On Rails\" <%s>\nSubject: New changes in \"/supabase/docker\"\n\nhttps://github.com/supabase/supabase/tree/master/docker\n\nSent securely via curl." "$SMTP_USER" | \
     curl --url 'smtps://smtp.gmail.com:465' \
         --mail-rcpt 'ben.isenstein@gmail.com' \
         --mail-from "$SMTP_USER" \
         --user "$SMTP_USER:$SMTP_PASS" \
-        -T <(echo -e "From: \"PG On Rails\" <$SMTP_USER>\nSubject: New changes in \"/supabase/docker\"\n\nhttps://github.com/supabase/supabase/tree/master/docker\n\nSent securely via curl.")
+        -T -
 fi
 
 echo "Saving new HEAD \"$current_head\"..."
