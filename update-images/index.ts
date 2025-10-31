@@ -14,11 +14,6 @@ const GH_TOKEN = process.env.GH_TOKEN;
 const SUPABASE_DOCKER_COMPOSE_URL = "https://raw.githubusercontent.com/supabase/supabase/refs/heads/master/docker/docker-compose.yml";
 
 async function main() {
-    console.log("Downloading git...");
-
-    await $`apt-get update`;
-    await $`apt-get install -y git`;
-
     // Fetch the raw content of the yaml file
     // Read the service image names into a map
     const yamlContent = await fetch(SUPABASE_DOCKER_COMPOSE_URL).then((res) => res.text());
