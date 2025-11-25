@@ -101,6 +101,8 @@ async function main() {
         "rest",
         "storage",
         "studio",
+        "analytics",
+        "vector",
     ];
 
     for (const dir of DIRECTORIES) {
