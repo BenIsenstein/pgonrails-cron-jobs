@@ -107,10 +107,6 @@ async function main() {
 
     for (const dir of DIRECTORIES) {
         await overwriteFirstLine(`./${dir}/Dockerfile`, `FROM ${images[dir]}`);
-
-        if (dir === "rest") {
-            await overwriteFirstLine(`./${dir}/dev.Dockerfile`, `FROM ${images[dir]}`);
-        }
     }
 
     // Check if any images have changed
