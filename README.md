@@ -5,6 +5,7 @@ This is a set of cron jobs which help keep PG On Rails up-to-date with the offic
 Jobs:
 - Update Docker image versions via PR
 - Notify me when work has been committed in `/docker` in the offical repo
+- Sync `CONFIG.md` from Supabase directly into PG On Rails `main`
 
 Learn more about PG On Rails [here.](https://github.com/BenIsenstein/pgonrails)
 
