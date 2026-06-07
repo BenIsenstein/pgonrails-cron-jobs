@@ -1,6 +1,15 @@
 import { $ } from "bun";
 import { promises as fs } from "fs";
-import { load as parseYaml } from "js-yaml";
+import * as yaml from "js-yaml";
+
+// Include custom docker compose yaml tag in the parser schema so it doesn't break
+const ResetSeq = new yaml.Type('!reset', { kind: 'sequence', construct: (d) => d || [] });
+const ResetMap = new yaml.Type('!reset', { kind: 'mapping', construct: (d) => d || {} });
+const ResetScalar = new yaml.Type('!reset', { kind: 'scalar', construct: () => null });
+const OverrideSeq = new yaml.Type('!override', { kind: 'sequence', construct: (d) => d || [] });
+const OverrideMap = new yaml.Type('!override', { kind: 'mapping', construct: (d) => d || {} });
+const OverrideScalar = new yaml.Type('!override', { kind: 'scalar', construct: () => null });
+const schema = yaml.DEFAULT_SCHEMA.extend([ResetSeq, ResetMap, ResetScalar, OverrideSeq, OverrideMap, OverrideScalar]);
 
 type SupabaseYAML = {
     services: {
@@ -12,16 +21,31 @@ type SupabaseYAML = {
 
 const GH_TOKEN = process.env.GH_TOKEN;
 const SUPABASE_DOCKER_COMPOSE_URL = "https://raw.githubusercontent.com/supabase/supabase/refs/heads/master/docker/docker-compose.yml";
+const DOCKER_COMPOSE_URLS = [
+    "https://raw.githubusercontent.com/supabase/supabase/refs/heads/master/docker/docker-compose.yml",
+    "https://raw.githubusercontent.com/supabase/supabase/refs/heads/master/docker/docker-compose.caddy.yml",
+    "https://raw.githubusercontent.com/supabase/supabase/refs/heads/master/docker/docker-compose.envoy.yml",
+    "https://raw.githubusercontent.com/supabase/supabase/refs/heads/master/docker/docker-compose.logs.yml"
+]
 
 async function main() {
-    // Fetch the raw content of the yaml file
-    // Read the service image names into a map
-    const yamlContent = await fetch(SUPABASE_DOCKER_COMPOSE_URL).then((res) => res.text());
-    const yamlObject: SupabaseYAML = parseYaml(yamlContent, "utf8");
     const images: { [key: string]: string } = {};
 
-    for (const key in yamlObject.services) {
-        images[key] = yamlObject.services[key]!.image;
+    for (const url of DOCKER_COMPOSE_URLS) {
+        // Fetch the raw content of the yaml files
+        // Read the service image names into a map
+        const yamlContent = await fetch(url).then((res) => res.text());
+        const yamlObject: SupabaseYAML = yaml.load(yamlContent, { schema });
+        
+        for (const key in yamlObject.services) {
+            if (yamlObject.services[key]!.image) {
+                images[key] = yamlObject.services[key]!.image;
+
+                if (key === "api-gw") {
+                    images.envoy = yamlObject.services[key]!.image;
+                }
+            }
+        }
     }
 
     // Configure git local identity
@@ -103,9 +127,15 @@ async function main() {
         "studio",
         "analytics",
         "vector",
+        "caddy",
+        "envoy"
     ];
 
     for (const dir of DIRECTORIES) {
+        if (!images[dir]) {
+            continue
+        }
+
         await overwriteFirstLine(`./${dir}/Dockerfile`, `FROM ${images[dir]}`);
     }
 
