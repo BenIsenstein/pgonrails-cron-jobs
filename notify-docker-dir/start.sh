@@ -43,17 +43,20 @@ if [ "$current_head" = "$previous_head" ]; then
     exit 0
 fi
 
-echo "Supabase remote HEAD has updated! Checking for relevant changes locally..." 
+echo "Supabase remote HEAD has updated! Checking for relevant changes locally..."
 
-if [ -d "$WORKDIR/supabase" ]; then
-    cd "$WORKDIR/supabase"
-    git pull
-else
-    git clone https://github.com/supabase/supabase "$WORKDIR/supabase"
-    cd "$WORKDIR/supabase"
+if [ -d "$WORKDIR/supabase/.git" ]; then
+    echo "Found legacy full working-tree clone, removing in favor of a bare blobless mirror..."
+    rm -rf "$WORKDIR/supabase"
 fi
 
-if [ -z "$(git diff --name-only "$previous_head" HEAD -- docker)" ]; then
+if [ -d "$WORKDIR/supabase" ]; then
+    git --git-dir="$WORKDIR/supabase" fetch --filter=blob:none origin +master:master
+else
+    git clone --bare --filter=blob:none --single-branch --branch master https://github.com/supabase/supabase "$WORKDIR/supabase"
+fi
+
+if [ -z "$(git --git-dir="$WORKDIR/supabase" diff --name-only "$previous_head" master -- docker)" ]; then
     echo "Nothing has changed in /docker!"
 else
     echo "New changes in /docker! Notifying via email..."
